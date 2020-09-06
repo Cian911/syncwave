@@ -1,28 +1,46 @@
 package main
 
 import (
-  "fmt"
-  "io"
-  "os"
+	"fmt"
+	"io"
+	"os"
+  "sync"
   "golang.org/x/crypto/ssh"
 )
 
 func main() {
-  // Configure base client
-  sshConfig := &ssh.ClientConfig{
-    User: os.Getenv("PI_USER"),
+  var wg sync.WaitGroup
+
+  // Create array of node ips
+  var clusterNodes = []string{"192.168.0.103", "pi-worker-1", "pi-worker-2", "pi-worker-4-nfs"}
+  wg.Add(1)
+
+  go func() {
+    for i := 0; i < len(clusterNodes); i++ {
+      execute(clusterNodes[i])
+    }
+    wg.Done()
+  }()
+
+  wg.Wait()
+}
+
+func createSSHSession(user, password string) *ssh.ClientConfig {
+  return &ssh.ClientConfig{
+    User: user,
     Auth: []ssh.AuthMethod{
-      ssh.Password(os.Getenv("PI_PASSWORD")),
+      ssh.Password(password),
     },
     HostKeyCallback: ssh.InsecureIgnoreHostKey(),
   }
+}
 
-  // Establish connection
-  connection, err := ssh.Dial("tcp", fmt.Sprintf("%s:22", os.Getenv("PI_ADDRESS")), sshConfig)
-  if err != nil {
-    fmt.Println(fmt.Errorf("Failed to dial: %s", err))
-  }
+func establishConnection(protocol, address string, config *ssh.ClientConfig) (*ssh.Client, error) {
+  return ssh.Dial(protocol, fmt.Sprintf("%s:22", address), config)
+}
 
+
+func prepareSession(connection *ssh.Client) (*ssh.Session, error) {
   // Create a session to the remote terminal
   session, err := connection.NewSession()
   if err != nil {
@@ -62,8 +80,25 @@ func main() {
   }
   go io.Copy(os.Stderr, stderr)
 
-  err = session.Run("uname -a")
+  return session, err
+}
 
+func execute(address string) {
+  // Configure base client
+  sshConfig := createSSHSession(os.Getenv("PI_USER"), os.Getenv("PI_PASSWORD"))
+
+  // Establish connection
+  connection, err := establishConnection("tcp", address, sshConfig)
+  if err != nil {
+    fmt.Println(fmt.Errorf("Failed to dial: %s", err))
+  }
+
+  session, err := prepareSession(connection)
+  if err != nil {
+    fmt.Errorf("Failed to establish pty session.", err)
+  }
+
+  err = session.Run("uname -a")
   // Ensure session gets closed
   session.Close()
 }
