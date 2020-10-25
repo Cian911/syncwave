@@ -1,0 +1,22 @@
+all-nodes:
+  master-nodes:
+  worker-nodes:
+
+master-nodes:
+  hosts:
+    - hostname: pi-master
+      ip-address: 192.168.0.1
+
+worker-nodes:
+  hosts:
+    - hostname: pi-master
+      ip-address: 192.168.0.1
+    - hostname: pi-worker-1
+      ip-address: 192.168.0.1
+    - hostname: pi-worker-2
+      ip-address: 192.168.0.1
+    - hostname: pi-worker-3
+      ip-address: 192.168.0.1
+
+configuration:
+  username: cian

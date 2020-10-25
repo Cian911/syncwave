@@ -98,7 +98,7 @@ func execute(address string) {
     fmt.Errorf("Failed to establish pty session.", err)
   }
 
-  err = session.Run("uname -a")
+  err = session.Run("sudo shutdown -h now")
   // Ensure session gets closed
   session.Close()
 }
