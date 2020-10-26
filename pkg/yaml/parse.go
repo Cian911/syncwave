@@ -1,8 +1,11 @@
 package yaml
 
 import (
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"log"
+	"os"
+
+	"gopkg.in/yaml.v2"
 )
 
 type ConfigFile struct {
@@ -31,10 +34,10 @@ type Hosts struct {
 	IPAddress string `yaml:"ip-address"`
 }
 
-func ParseMain(filePath string) (infrastructure *ConfigFile, err error) {
+func ParseFile(filePath string) (config *ConfigFile, err error) {
 	data := readFile(filePath)
 
-	err = yaml.Unmarshal(data, &infrastructure)
+	err = yaml.Unmarshal(data, &config)
 	if err != nil {
 		return
 	}
@@ -43,6 +46,10 @@ func ParseMain(filePath string) (infrastructure *ConfigFile, err error) {
 }
 
 func readFile(filePath string) []byte {
+	if _, err := os.Stat(filePath); err != nil {
+		log.Fatal("Cannot read config file.")
+	}
+
 	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return nil
