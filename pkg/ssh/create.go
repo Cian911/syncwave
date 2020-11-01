@@ -1,59 +1,87 @@
 package ssh
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os/user"
 
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/knownhosts"
 )
 
-var hostKey ssh.PublicKey
+func Execute(address string) string {
+	// Current user
+	user, err := user.Current()
+	if err != nil {
+		log.Fatalf("Could not get current user: %v", err)
+	}
 
-func Execute(address string) {
 	// Configure base client
-	sshConfig := createSession("cian")
-	fmt.Println("Created.")
+	sshConfig := createSession(user)
+
 	// Establish connection
 	connection, err := establishConnection("tcp", address, sshConfig)
-	fmt.Println("Connected.")
+	if err != nil {
+		log.Fatalf("Failed to establish connection: %v", err)
+	}
+
 	session, err := prepareSession(connection)
 	if err != nil {
-		log.Fatalf("Failed to establish pty session: %v", err)
+		log.Fatalf("Failed to create session: %v", err)
 	}
-	fmt.Println("Prepared.")
-	// Execute Command
-	//if err = session.Run("uname -a"); err != nil {
-	//log.Fatalf("LOG: %v", err)
-	//}
+
+	// Execute command
+	var stdoutBuf bytes.Buffer
+	session.Stdout = &stdoutBuf
+	session.Run("uname -a")
 
 	// Close Session
 	session.Close()
+
+	return fmt.Sprintf("%s - %s", address, stdoutBuf.String())
 }
 
-func createSession(user string) *ssh.ClientConfig {
-	key, err := ioutil.ReadFile("/home/cian/.ssh/id_rsa")
+func createHostkeyCallback(user *user.User) ssh.HostKeyCallback {
+	hostkeyCallback, err := knownhosts.New(fmt.Sprintf("%s/.ssh/known_hosts", user.HomeDir))
 	if err != nil {
-		log.Fatalf("unable to read private key: %v", err)
+		log.Fatalf("Could not read hosts file: %v", err)
+	}
+
+	return hostkeyCallback
+}
+
+func createSession(user *user.User) *ssh.ClientConfig {
+	hostkeyCallback := createHostkeyCallback(user)
+
+	key, err := ioutil.ReadFile(fmt.Sprintf("%s/.ssh/id_rsa", user.HomeDir))
+	if err != nil {
+		log.Fatalf("Unable to read private key: %v", err)
 	}
 
 	// Create the Signer for this private key.
 	signer, err := ssh.ParsePrivateKey(key)
 	if err != nil {
-		log.Fatalf("unable to parse private key: %v", err)
+		log.Fatalf("Unable to parse private key: %v", err)
 	}
 
 	return &ssh.ClientConfig{
-		User: user,
+		User: user.Username,
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(signer),
 		},
-		HostKeyCallback: ssh.FixedHostKey(hostKey),
+		HostKeyCallback: hostkeyCallback,
 	}
 }
 
 func establishConnection(protocol, address string, config *ssh.ClientConfig) (*ssh.Client, error) {
-	return ssh.Dial(protocol, fmt.Sprintf("%s:22"), config)
+	client, err := ssh.Dial(protocol, fmt.Sprintf("%s:22", address), config)
+	if err != nil {
+		log.Fatalf("Unable to dial connection: %v", err)
+	}
+
+	return client, err
 }
 
 func prepareSession(connection *ssh.Client) (*ssh.Session, error) {
