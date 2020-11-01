@@ -1,8 +1,10 @@
 package execute
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/cian911/raspberry-pi-provisioner/pkg/ssh"
 	"github.com/cian911/raspberry-pi-provisioner/pkg/yaml"
@@ -24,6 +26,9 @@ func NewCommand() (c *cobra.Command) {
 				os.Exit(1)
 			}
 
+			results := make(chan string, 10)
+			timeout := time.After(10 * time.Second)
+
 			masterNodes := make(map[string]string)
 			workerNodes := make(map[string]string)
 
@@ -36,8 +41,20 @@ func NewCommand() (c *cobra.Command) {
 			}
 
 			// I guess we want  to try and connect to the nodes here..
-			for _, v := range workerNodes {
-				ssh.Execute(v)
+			for _, host := range workerNodes {
+				go func(host string) {
+					results <- ssh.Execute(host)
+				}(host)
+			}
+
+			for i := 0; i < len(workerNodes); i++ {
+				select {
+				case res := <-results:
+					fmt.Println(res)
+				case <-timeout:
+					fmt.Println("Timeout.")
+					return
+				}
 			}
 		},
 	}
