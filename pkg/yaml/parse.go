@@ -1,6 +1,7 @@
 package yaml
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -43,6 +44,16 @@ func ParseFile(filePath string) (config *ConfigFile, err error) {
 	}
 
 	return
+}
+
+func LookupFile() (bool, string) {
+	// Does a config file exist in the current dir?
+	path, err := os.Stat(fmt.Sprintf("%s/config.yaml", os.Getwd()))
+	if err != nil {
+		return false, ""
+	}
+
+	return true, path
 }
 
 func readFile(filePath string) []byte {
