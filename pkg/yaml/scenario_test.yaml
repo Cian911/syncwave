@@ -1,0 +1,10 @@
+scenario:
+  name: Name of the scenario
+  description: Description of the scenario
+  tasks:
+    - name: list os version
+      exec: |
+        uname -a
+    - name: list ip address of remote machine
+      exec: |
+        ifconfig

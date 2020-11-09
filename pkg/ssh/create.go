@@ -11,7 +11,7 @@ import (
 	"golang.org/x/crypto/ssh/knownhosts"
 )
 
-func Execute(address string) string {
+func Execute(address, task string) string {
 	// Current user
 	user, err := user.Current()
 	if err != nil {
@@ -35,7 +35,7 @@ func Execute(address string) string {
 	// Execute command
 	var stdoutBuf bytes.Buffer
 	session.Stdout = &stdoutBuf
-	session.Run("uname -a")
+	session.Run(task)
 
 	// Close Session
 	session.Close()
