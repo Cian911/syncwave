@@ -9,6 +9,7 @@ import (
 	"github.com/cian911/raspberry-pi-provisioner/pkg/printer"
 	"github.com/cian911/raspberry-pi-provisioner/pkg/ssh"
 	"github.com/cian911/raspberry-pi-provisioner/pkg/yaml"
+	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -56,7 +57,7 @@ func NewCommand() (c *cobra.Command) {
 			// results := make(chan error, 10)
 			results := make(chan ExecutionResult)
 
-			timeout := time.After(30 * time.Second)
+			timeout := time.After(15 * time.Second)
 
 			masterNodes := make(map[string]string)
 			workerNodes := make(map[string]string)
@@ -79,7 +80,6 @@ func NewCommand() (c *cobra.Command) {
 				[]string{
 					"Host",
 					"Task",
-					"Status",
 				},
 			)
 
@@ -104,9 +104,15 @@ func NewCommand() (c *cobra.Command) {
 			for i := 0; i < totalResultsCount; i++ {
 				select {
 				case res := <-results:
-					fmt.Println(res)
+					data := []string{res.Host, res.Task}
+					table.Rich(data, []tablewriter.Colors{tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiGreenColor}, tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiGreenColor}})
+					table.Append([]string{
+						res.Host,
+						res.Task,
+					})
 				case <-timeout:
 					fmt.Println("Timeout.")
+					table.Render()
 					return
 				}
 			}
