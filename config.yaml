@@ -9,8 +9,6 @@ master-nodes:
 
 worker-nodes:
   hosts:
-    - hostname: kube-worker-1
-      ip-address: 192.168.0.103
     - hostname: kube-worker-2
       ip-address: 192.168.0.217
     - hostname:  kube-worker-3-nfs
