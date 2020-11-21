@@ -11,7 +11,7 @@ import (
 	"golang.org/x/crypto/ssh/knownhosts"
 )
 
-func Execute(address, task string) string {
+func Execute(address, task string) (string, error) {
 	// Current user
 	user, err := user.Current()
 	if err != nil {
@@ -35,12 +35,12 @@ func Execute(address, task string) string {
 	// Execute command
 	var stdoutBuf bytes.Buffer
 	session.Stdout = &stdoutBuf
-	session.Run(task)
+	status := session.Run(task)
 
 	// Close Session
 	session.Close()
 
-	return fmt.Sprintf("%s - %s", address, stdoutBuf.String())
+	return stdoutBuf.String(), status
 }
 
 func createHostkeyCallback(user *user.User) ssh.HostKeyCallback {

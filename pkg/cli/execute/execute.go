@@ -6,11 +6,19 @@ import (
 	"os"
 	"time"
 
+	"github.com/cian911/raspberry-pi-provisioner/pkg/printer"
 	"github.com/cian911/raspberry-pi-provisioner/pkg/ssh"
 	"github.com/cian911/raspberry-pi-provisioner/pkg/yaml"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+type ExecutionResult struct {
+	Host   string
+	Task   string
+	Output string
+	Status error
+}
 
 func NewCommand() (c *cobra.Command) {
 	c = &cobra.Command{
@@ -45,8 +53,10 @@ func NewCommand() (c *cobra.Command) {
 				os.Exit(1)
 			}
 
-			results := make(chan string, 10)
-			timeout := time.After(10 * time.Second)
+			// results := make(chan error, 10)
+			results := make(chan ExecutionResult)
+
+			timeout := time.After(30 * time.Second)
 
 			masterNodes := make(map[string]string)
 			workerNodes := make(map[string]string)
@@ -65,10 +75,26 @@ func NewCommand() (c *cobra.Command) {
 				tasks[v.TaskName] = v.TaskCMD
 			}
 
+			table := printer.NewTable(os.Stdout,
+				[]string{
+					"Host",
+					"Task",
+					"Status",
+				},
+			)
+
 			for _, task := range tasks {
 				for _, host := range workerNodes {
 					go func(host, task string) {
-						results <- ssh.Execute(host, task)
+						output, status := ssh.Execute(host, task)
+						res := ExecutionResult{
+							host,
+							task,
+							output,
+							status,
+						}
+
+						results <- res
 					}(host, task)
 				}
 			}
@@ -84,6 +110,8 @@ func NewCommand() (c *cobra.Command) {
 					return
 				}
 			}
+
+			table.Render()
 		},
 	}
 
@@ -98,4 +126,12 @@ func NewCommand() (c *cobra.Command) {
 
 func totalPrintableResults(nodesCount, tasksCount int) int {
 	return nodesCount * tasksCount
+}
+
+func hasCommandFailed(status error) bool {
+	if status != nil {
+		return true
+	}
+
+	return false
 }
