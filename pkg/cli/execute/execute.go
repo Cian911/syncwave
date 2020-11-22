@@ -105,11 +105,6 @@ func NewCommand() (c *cobra.Command) {
 				for res := range results {
 					data := []string{res.Host, res.Task, res.Output}
 					table.Rich(data, []tablewriter.Colors{tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiGreenColor}, tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiGreenColor}})
-					table.Append([]string{
-						res.Host,
-						res.Task,
-						res.Output,
-					})
 				}
 			}()
 			wg.Wait()
