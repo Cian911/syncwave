@@ -10,4 +10,4 @@ scenario:
         hostname
     - name: update
       exec: |
-        apt update -y
+        sudo apt update -y
