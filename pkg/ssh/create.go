@@ -11,7 +11,7 @@ import (
 	"golang.org/x/crypto/ssh/knownhosts"
 )
 
-func Execute(address, task string) (string, error) {
+func Execute(address, task string) (string, string, error) {
 	// Current user
 	user, err := user.Current()
 	if err != nil {
@@ -32,15 +32,19 @@ func Execute(address, task string) (string, error) {
 		log.Fatalf("Failed to create session: %v", err)
 	}
 
-	// Execute command
+	// Copy output from stdout & stderr
 	var stdoutBuf bytes.Buffer
+	var stderrBuf bytes.Buffer
 	session.Stdout = &stdoutBuf
+	session.Stderr = &stderrBuf
+
+	// Execute command
 	status := session.Run(task)
 
 	// Close Session
 	session.Close()
 
-	return stdoutBuf.String(), status
+	return stdoutBuf.String(), stderrBuf.String(), status
 }
 
 func createHostkeyCallback(user *user.User) ssh.HostKeyCallback {

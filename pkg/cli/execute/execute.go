@@ -8,7 +8,6 @@ import (
 	"github.com/cian911/raspberry-pi-provisioner/pkg/printer"
 	"github.com/cian911/raspberry-pi-provisioner/pkg/ssh"
 	"github.com/cian911/raspberry-pi-provisioner/pkg/yaml"
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -16,7 +15,8 @@ import (
 type ExecutionResult struct {
 	Host   string
 	Task   string
-	Output string
+	Stdout string
+	Stderr string
 	Status error
 }
 
@@ -77,22 +77,25 @@ func NewCommand() (c *cobra.Command) {
 				[]string{
 					"Host",
 					"Task",
-					"Output",
+					"Stdout",
+					"Stderr",
 				},
 			)
 
-			var wg sync.WaitGroup
+			var wg_cmd sync.WaitGroup
+			var wg_processing sync.WaitGroup
 
 			for _, task := range tasks {
 				for _, host := range workerNodes {
-					wg.Add(1)
+					wg_cmd.Add(1)
 					go func(host, task string) {
-						defer wg.Done()
-						output, status := ssh.Execute(host, task)
+						defer wg_cmd.Done()
+						stdout, stderr, status := ssh.Execute(host, task)
 						res := ExecutionResult{
 							host,
 							task,
-							output,
+							stdout,
+							stderr,
 							status,
 						}
 
@@ -101,14 +104,21 @@ func NewCommand() (c *cobra.Command) {
 				}
 			}
 
+			wg_processing.Add(1)
 			go func() {
+				defer wg_processing.Done()
 				for res := range results {
-					data := []string{res.Host, res.Task, res.Output}
-					table.Rich(data, []tablewriter.Colors{tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiGreenColor}, tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiGreenColor}})
+					data := []string{res.Host, res.Task, res.Stdout, res.Stderr}
+					if res.Status == nil {
+						table = printer.SuccessStyle(table, data)
+					} else {
+						table = printer.ErrorStyle(table, data)
+					}
 				}
 			}()
-			wg.Wait()
-
+			wg_cmd.Wait()
+			close(results)
+			wg_processing.Wait()
 			table.Render()
 		},
 	}

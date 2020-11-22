@@ -8,6 +8,6 @@ scenario:
     - name: list ip address of remote machine
       exec: |
         hostname
-    - name: do something else
+    - name: update
       exec: |
-        ls -la
+        apt update -y
