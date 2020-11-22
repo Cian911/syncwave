@@ -1,10 +1,9 @@
 package execute
 
 import (
-	"fmt"
 	"log"
 	"os"
-	"time"
+	"sync"
 
 	"github.com/cian911/raspberry-pi-provisioner/pkg/printer"
 	"github.com/cian911/raspberry-pi-provisioner/pkg/ssh"
@@ -54,10 +53,8 @@ func NewCommand() (c *cobra.Command) {
 				os.Exit(1)
 			}
 
-			// results := make(chan error, 10)
 			results := make(chan ExecutionResult)
-
-			timeout := time.After(15 * time.Second)
+			// timeout := time.After(15 * time.Second)
 
 			masterNodes := make(map[string]string)
 			workerNodes := make(map[string]string)
@@ -80,12 +77,17 @@ func NewCommand() (c *cobra.Command) {
 				[]string{
 					"Host",
 					"Task",
+					"Output",
 				},
 			)
 
+			var wg sync.WaitGroup
+
 			for _, task := range tasks {
 				for _, host := range workerNodes {
+					wg.Add(1)
 					go func(host, task string) {
+						defer wg.Done()
 						output, status := ssh.Execute(host, task)
 						res := ExecutionResult{
 							host,
@@ -99,23 +101,18 @@ func NewCommand() (c *cobra.Command) {
 				}
 			}
 
-			totalResultsCount := totalPrintableResults(len(workerNodes)+len(masterNodes), len(tasks))
-
-			for i := 0; i < totalResultsCount; i++ {
-				select {
-				case res := <-results:
-					data := []string{res.Host, res.Task}
+			go func() {
+				for res := range results {
+					data := []string{res.Host, res.Task, res.Output}
 					table.Rich(data, []tablewriter.Colors{tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiGreenColor}, tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiGreenColor}})
 					table.Append([]string{
 						res.Host,
 						res.Task,
+						res.Output,
 					})
-				case <-timeout:
-					fmt.Println("Timeout.")
-					table.Render()
-					return
 				}
-			}
+			}()
+			wg.Wait()
 
 			table.Render()
 		},
