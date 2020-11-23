@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os/user"
+	"strings"
 
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/knownhosts"
@@ -44,7 +45,7 @@ func Execute(address, task string) (string, string, error) {
 	// Close Session
 	session.Close()
 
-	return stdoutBuf.String(), stderrBuf.String(), status
+	return strings.TrimSpace(strings.TrimSuffix(stdoutBuf.String(), "\n")), strings.TrimSpace(strings.TrimSuffix(stderrBuf.String(), "\n")), status
 }
 
 func createHostkeyCallback(user *user.User) ssh.HostKeyCallback {
