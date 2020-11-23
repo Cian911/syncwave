@@ -8,7 +8,12 @@ Get list of node hostnames and/or addresses `nmap -sn 192.168.0.*`
 
 To build the project, simple run the following command.
 ```bash
-go build -o syncwave ./cmd/syncwave
+make build
+```
+
+Or you can build and run using the following command as well.
+```bash
+make build-run
 ```
 
 #### Run
