@@ -29,3 +29,5 @@ To execute a set of tasks on your hosts, pass in a scenario file as a flag, like
 ```
 
 Examples of the structures of both files can be found in the repo above.
+
+![Syncwave Sample Output](https://i.imgur.com/qY0KUKG.png)
