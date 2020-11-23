@@ -17,3 +17,10 @@ To run the project, execute the compiled binary and pass in a configuration file
 ```bash
 ./syncwave execute --config-file config.yaml
 ```
+
+To execute a set of tasks on your hosts, pass in a scenario file as a flag, like so.
+```bash
+./syncwave execute --config-file config.yaml --scenario scenario.yaml
+```
+
+Examples of the structures of both files can be found in the repo above.
