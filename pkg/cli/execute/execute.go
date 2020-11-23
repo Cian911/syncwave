@@ -54,7 +54,6 @@ func NewCommand() (c *cobra.Command) {
 			}
 
 			results := make(chan ExecutionResult)
-			// timeout := time.After(15 * time.Second)
 
 			masterNodes := make(map[string]string)
 			workerNodes := make(map[string]string)
@@ -77,8 +76,8 @@ func NewCommand() (c *cobra.Command) {
 				[]string{
 					"Host",
 					"Task",
-					"Stdout",
-					"Stderr",
+					"Output",
+					"Error",
 				},
 			)
 
