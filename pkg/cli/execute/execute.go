@@ -24,15 +24,9 @@ func NewCommand() (c *cobra.Command) {
 	c = &cobra.Command{
 		Use:   "execute",
 		Short: "Execute command on remote hosts",
-		Long:  "TODO: Write a longer message for this.",
+		Long:  "Pass a hosts configuration file and scenario file in order to execute tasks on remote hosts.",
 		Run: func(cmd *cobra.Command, args []string) {
-			configFile := viper.GetString("config-file")
-
-			if configFile == "" {
-				// Need to check as default if one exists in the current directory
-				log.Fatal("You must pass a config file.")
-			}
-
+			configFile := viper.GetString("config")
 			parsedConfigFile, err := yaml.ParseConfigFile(configFile)
 
 			if err != nil {
@@ -41,11 +35,6 @@ func NewCommand() (c *cobra.Command) {
 			}
 
 			scenarioFile := viper.GetString("scenario")
-
-			if scenarioFile == "" {
-				log.Fatal("You must pass a valid scanrio to be executed.")
-			}
-
 			parsedScenarioFile, err := yaml.ParseScenarioFile(scenarioFile)
 
 			if err != nil {
@@ -77,7 +66,6 @@ func NewCommand() (c *cobra.Command) {
 					"Host",
 					"Task",
 					"Output",
-					"Error",
 				},
 			)
 
@@ -122,23 +110,5 @@ func NewCommand() (c *cobra.Command) {
 		},
 	}
 
-	c.Flags().StringP("config-file", "", "", "Pass a configuration file to syncwave to be parsed.")
-	c.Flags().StringP("scenario", "", "", "Pass the scenario as an argument you which to run.")
-
-	viper.BindPFlag("config-file", c.Flags().Lookup("config-file"))
-	viper.BindPFlag("scenario", c.Flags().Lookup("scenario"))
-
 	return
-}
-
-func totalPrintableResults(nodesCount, tasksCount int) int {
-	return nodesCount * tasksCount
-}
-
-func hasCommandFailed(status error) bool {
-	if status != nil {
-		return true
-	}
-
-	return false
 }
