@@ -45,7 +45,7 @@ func Execute(address, task string) (string, string, error) {
 	// Close Session
 	session.Close()
 
-	return strings.TrimSpace(strings.TrimSuffix(stdoutBuf.String(), "\n")), strings.TrimSpace(strings.TrimSuffix(stderrBuf.String(), "\n")), status
+	return strings.TrimSpace(strings.Replace(stdoutBuf.String(), "\r\n", "", -1)), strings.TrimSpace(strings.TrimSuffix(stderrBuf.String(), "\r\n")), status
 }
 
 func createHostkeyCallback(user *user.User) ssh.HostKeyCallback {
