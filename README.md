@@ -4,6 +4,10 @@ The intention of this project is to automate the setup and maintenance of a rasp
 
 Get list of node hostnames and/or addresses `nmap -sn 192.168.0.*` 
 
+#### Install
+
+To install the compiled binary file, go to the releases tab, and download the version most suitable to your environment. https://github.com/Cian911/syncwave/releases
+
 #### Build
 
 To build the project, simple run the following command.
