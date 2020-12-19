@@ -24,4 +24,4 @@ jobs:
           args: release --rm-dist
           workdir: ./cmd/syncwave
         env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
