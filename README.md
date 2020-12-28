@@ -37,7 +37,7 @@ Global Flags:
   -s, --scenario string   Pass scenario path/file.
 ```
 
-Below denotes the structure of the `config,yaml` and `scenario.yaml` files which  you can use as a base for building out your hosts and scenarios.
+Below denotes the structure of the `config.yaml` and `scenario.yaml` files which  you can use as a base for building out your hosts and scenarios.
 
 config.yaml
 ```yaml
