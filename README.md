@@ -9,7 +9,7 @@ Get list of node hostnames and/or addresses `nmap -sn 192.168.0.*`
 To install the compiled binary file, go to the releases tab, and download the version most suitable to your environment. https://github.com/Cian911/syncwave/releases. You can also download the latest binary version like so.
 
 ```bash
-wget wget https://github.com/Cian911/syncwave/releases/download/1.0.1/syncwave_1.0.1_linux_amd64.tar.gz
+wget https://github.com/Cian911/syncwave/releases/download/1.0.1/syncwave_1.0.1_linux_amd64.tar.gz
 sudo tar -xvf syncwave_1.0.1_linux_amd64.tar.gz -C /usr/local/bin/
 sudo chmod +x /usr/local/bin/syncwave
 ```
