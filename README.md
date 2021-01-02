@@ -2,7 +2,13 @@
 
 The intention of this project is to automate the setup and maintenance of a raspberry-pi k3s cluster with golang. This project could be used as a seperate terraform provider in the future.
 
-Get list of node hostnames and/or addresses `nmap -sn 192.168.0.*` 
+### Before you begin...
+
+Get list of node hostnames and/or addresses using `nmap` 
+
+```bash
+nmap -sn 192.168.0.*
+``` 
 
 #### Install
 
@@ -13,8 +19,6 @@ wget https://github.com/Cian911/syncwave/releases/download/1.0.1/syncwave_1.0.1_
 sudo tar -xvf syncwave_1.0.1_linux_amd64.tar.gz -C /usr/local/bin/
 sudo chmod +x /usr/local/bin/syncwave
 ```
-
-
 
 #### Build
 
